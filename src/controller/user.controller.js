@@ -23,7 +23,7 @@ const User = {
     Signin: async(req,res) => {
         const { email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 12);
-        try {
+        try { 
             const response = await userModel.signinUser(email, hashedPassword);
             if (!response) {
                 res.status(400).json({ message: "Error in user login" })
@@ -35,6 +35,10 @@ const User = {
         } catch (error) {
             res.status(400).json({message:"Error while user trying to login"})
         }
+    },
+    Signout: (req,res) => {
+        res.cookie("token", " ", { httpOnly: true ,maxAge: 0});
+        res.status(200).json({ message: "Logged out successfully" });
     }
 }
 
