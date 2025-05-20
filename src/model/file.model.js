@@ -2,11 +2,11 @@ const mongoose = require("mongoose");
 
 const fileschema = new mongoose.Schema({
   Title: { type: String },
-    Author_Mail: {Author_Mail:{ type: String }},
-  Conference: {
+    Author_Mail: [{Author_Mail:{ type: String }}],
+  Conference: [{
     Conference_Name: { type: String},
     Decision_With_Commends:{type:String},
-  },
+  }],
 });
 const file = mongoose.model("Excel", fileschema);
 
