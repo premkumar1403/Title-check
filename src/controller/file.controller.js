@@ -4,6 +4,7 @@ const fileModel = require("../model/file.model")
 
 
 const fileController = {
+  
 createFile: async (req, res) => {
         const file = req.file.buffer;
 
@@ -46,14 +47,14 @@ createFile: async (req, res) => {
         }
     },
 
-    getFiles: async (req, res) => {
+    getFile: async (req, res) => {
         const file = req.file.buffer;
         try {
             const workbook = XLSX.read(file, { type: "buffer" });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-          const data = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
-          
+            const data = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
+            
            
               if (!data || data.length === 0) {
                 return new Error("response not found!");
@@ -63,8 +64,8 @@ createFile: async (req, res) => {
                       try {
                           const payload = {
                               Title: item.Title,
-                          }
-                        const response = await fileModel.getFiles(payload);
+                        }
+                        const response = await fileModel.showFile(payload);
                         responses.push(response);
                       } catch (error) { 
                          res.status(400).json({message:"No files matched!"})

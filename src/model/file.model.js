@@ -3,27 +3,28 @@ const mongoose = require("mongoose");
 
 const fileschema = new mongoose.Schema({
   Title: { type: String },
-  Author_Mail: { type: String,},
-  Conference: {
+    Author: [{
+        Mail: { type: String},
+    },],
+  Conference: [{
     Conference_Name: { type: String},
     Decision_With_Commends:{type:String},
-  },
+  },]
 });
 
 const file = mongoose.model("Excel", fileschema);
 
 const fileModel = {
     checkTitleExist: async (payload) => {
-        console.log(payload);
         
         const { Title,Author_Mail,Conference_Name,Decision_With_Commends} = payload;
-        const exist = await file.findOne({Title});
+        const exist = await file.find({Title});
         if (exist) {
             return exist.Title, exist.Conference.Conference_Name, exist.Conference.Decision_With_Commends;
         }
-        else {
-            return await file.insertMany({ Title: Title, Author_Mail: Author_Mail, Conference: { Conference_Name:Conference_Name, Decision_With_Commends: Decision_With_Commends } });
-        }
+        return await file.insertMany({ Title: Title, Author: {Mail:Author_Mail}, Conference: { Conference_Name:Conference_Name, Decision_With_Commends: Decision_With_Commends } });
+        
+        
     },
 
     createFiled: async(payload) => {        
@@ -60,7 +61,17 @@ const fileModel = {
     } catch (error) {
       throw new Error("Error updating author email");
     }
-  }
+  },
+    showFile: async (payload) => {
+        const { Title } = payload;
+        try {
+            const response = await file.find({ Title:Title });
+            return response;
+        } catch (error) {
+            return new Error("erro validating title")
+        }
+        
+    },
 
 }
 
