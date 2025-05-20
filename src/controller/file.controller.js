@@ -23,10 +23,10 @@ createFile: async (req, res) => {
                           Title: item.Title,
                           Author_Mail: item.Author_Mail,
                           Conference_Name: item.Conference_Name,
-                          Decision_With_Commends: item.Decision_With_Comments,
+                          Decision_With_Commends: item.Decision_With_Commends,
                         };
 
-                        fileModel.createField(payload);
+                        fileModel.createFiled(payload);
                         resolve();
                       } catch (error) {
                         res
@@ -81,45 +81,57 @@ createFile: async (req, res) => {
     
     updateField: async(req,res) => {
          try {
-    const fileBuffer = req.file.buffer;
-    const workbook = XLSX.read(fileBuffer, { type: "buffer" });
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
+      const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
 
-    if (!data || data.length === 0) {
-      return res.status(400).json({ message: "Excel file is empty or invalid!" });
-    }
-
-    const results = [];
-
-    for (const item of data) {
-      const payload = { Title: item.Title,}
-      if (!payload) continue;
-
-      const records = await fileModel.updateFile(payload);
-
-      if (records.length > 0) {
-        const decisionMap = {};
-        records.forEach(record => {
-          decisionMap[record.Conference_Name] = record.Decision_With_Comments;
-        });
-
-        // Use the first record to populate common fields
-        const first = records[0];
-
-        results.push(records);
+      if (!data || data.length === 0) {
+        return res.status(400).json({ message: "Excel file is empty or invalid!" });
       }
+
+      const responseList = [];
+
+      for (const row of data) {
+        const title = row.Title;
+        const email = row.Email;
+
+        if (!title || !email) continue;
+
+        const record = await fileModel.updateFile(title);
+
+        if (record) {
+          const existingEmails = record.Author?.email || [];
+
+          // If email does not exist, add it
+          if (!existingEmails.includes(email)) {
+            await fileModel.updateAuthorEmail(title, email);
+          }
+
+          // Prepare conference map
+          const conferenceMap = {};
+          for (const conf of record.Conference) {
+            conferenceMap[conf.Conference_Name] = conf.Decision_With_Commends;
+          }
+
+          responseList.push({
+            Title: record.Title,
+            Author_Emails: record.Author.email,
+            Conference_Decision_Map: conferenceMap
+          });
+        }
+      }
+
+      res.status(200).json({
+        message: "Records processed successfully",
+        data: responseList
+      });
+
+    } catch (error) {
+      console.error("Error processing file:", error.message);
+      res.status(500).json({ message: "Internal Server Error" });
     }
-
-    res.status(200).json({
-      message: "Grouped files fetched successfully",
-      data: results
-    });
-
-  } catch (error) {
-    console.error("Error processing Excel upload", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
-  }}
+  }
 }
+
 module.exports = fileController;

@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 
 const fileschema = new mongoose.Schema({
-  Title: { type: String, required: true },
-  Author_Mail: { type: String, required: true },
+  Title: { type: String },
+  Author_Mail: { type: String,},
   Conference: {
     Conference_Name: { type: String},
     Decision_With_Commends:{type:String},
@@ -19,37 +19,48 @@ const fileModel = {
         const { Title,Author_Mail,Conference_Name,Decision_With_Commends} = payload;
         const exist = await file.findOne({Title});
         if (exist) {
-            return exist.Title, exist.Conference_Name, exist.Decision_With_Comments;
+            return exist.Title, exist.Conference.Conference_Name, exist.Conference.Decision_With_Commends;
         }
         else {
             return await file.insertMany({ Title: Title, Author_Mail: Author_Mail, Conference: { Conference_Name:Conference_Name, Decision_With_Commends: Decision_With_Commends } });
         }
     },
 
-    createFiled: async(payload) => {
+    createFiled: async(payload) => {        
         await fileModel.checkTitleExist(payload);
     },
 
 
-    getFiles: async (payload) => {
-        const { Title } = payload;
+    getFiles: async () => {
         try {
-            const response = await file.findOne({ Title:Title });
-            return response;
-        } catch (error) {
-            return new Error("erro validating title")
-        }
+    const result = await file.find({});
+    return result;
+  } catch (error) {
+    throw new Error("Error fetching files");
+  }
         
     },
      
-    updateFile: async ({Title}) => {
+    updateFile: async (payload) => {
+        const {Title} = payload;
+        
         try {
-    const records = await file.find({ Title: Title });
-    return records;
-  } catch (error) {
-    throw new Error("Error fetching records by title");
+      return await file.findOne({ Title: Title });
+    } catch (error) {
+      throw new Error("Error fetching by title");
+    }
+},
+
+    updateAuthorEmail: async (Title, newEmail) => {
+    try {
+      return await file.updateOne(
+        { Title: Title },
+        { $addToSet: { "Author.email": newEmail } } // Avoid duplicates
+      );
+    } catch (error) {
+      throw new Error("Error updating author email");
+    }
   }
-    },
 
 }
 
