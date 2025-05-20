@@ -13,7 +13,7 @@ createFile: async (req, res) => {
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
             const data = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
-            const promise = new Promise((resolve, reject) => {
+            new Promise((resolve, reject) => {
                 if (!data) {
                     reject();
                 }
