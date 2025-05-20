@@ -36,7 +36,7 @@ const fileModel = {
             const response = await file.find({ Title:Title });
             return response;
         } catch (error) {
-            return new Error("erro validating title")
+            return new Error("error validating title")
         }
         
     },
