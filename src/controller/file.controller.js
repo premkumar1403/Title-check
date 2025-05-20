@@ -1,4 +1,4 @@
-const xlsx = require("xlsx")
+const XLSX = require("xlsx")
 const fileModel = require("../model/file.model")
 
 
@@ -56,10 +56,74 @@ createFile: async (req, res) => {
     },
 
     updateField: async(req,res) => {
-        
+         try {
+      // Read Excel buffer
+      const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
+
+      const updateResults = [];
+
+      for (const item of data) {
+        const {
+          Title,
+          Author_Mail,
+          Conference_Name,
+          Decision_With_Comments,
+        } = item;
+
+        if (!Title) {
+          updateResults.push({
+            status: "skipped",
+            reason: "Missing Title",
+            row: item,
+          });
+          continue;
+        }
+
+        try {
+          const existingDoc = await fileModel.updateField({Title});
+
+          if (existingDoc) {
+            existingDoc.Author_Mail = Author_Mail;
+            existingDoc.Conference_Name = Conference_Name;
+            existingDoc.Decision_With_Comments = Decision_With_Comments;
+
+            await existingDoc.save();
+
+            updateResults.push({ status: "updated", Title });
+          } else {
+            updateResults.push({
+              status: "not found",
+              Title,
+              reason: "Document with the given Title does not exist",
+            });
+          }
+        } catch (error) {
+          updateResults.push({
+            status: "error",
+            Title,
+            error: error.message,
+          });
+        }
+      }
+
+      const updatedTitles = updateResults
+        .filter((item) => item.status === "updated")
+        .map((item) => item.Title);
+
+      return res.status(200).json({
+        message: "Update process completed",
+        updatedTitles,
+        results: updateResults,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        message: "Failed to process file",
+        error: err.message,
+      });
+    }
     },
-
-    
-
 }
 module.exports = fileController;
