@@ -23,7 +23,7 @@ createFile: async (req, res) => {
                           Title: item.Title,
                           Author_Mail: item.Author_Mail,
                           Conference_Name: item.Conference_Name,
-                          Decision_With_Commends: item.Decision_With_Comments,
+                          Decision_With_Commends: item.Decision_With_Commends,
                         };
 
                         fileModel.createField(payload);
