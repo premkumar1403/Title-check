@@ -6,6 +6,6 @@ const upload = require("../middleware/multer")
 //file uploading route
 router.post("/file-upload",upload.single("file"),fileController.createFile);
 
-router.post('/file-get', upload.single('file'), fileController.getFiles);
+router.post('/file-get', upload.single('file'), fileController.getFile);
 
 module.exports = router;
