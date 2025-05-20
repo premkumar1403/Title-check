@@ -19,7 +19,7 @@ const fileModel = {
             return exist.Title, exist.Conference_Name, exist.Decision_With_Comments;
         }
         else {
-            return await file.insertMany(Title, Author_Mail, Conference_Name, Decision_With_Comments);
+            return await file.insertMany(Title, Author_Mail, Conference_Name, Decision_With_Commends);
         }
     },
 
@@ -39,22 +39,13 @@ const fileModel = {
         
     },
      
-    updateField: async ({ Title, Author_Mail, Conference_Name, Decision_With_Comments }) => {
+    updateFile: async ({Title}) => {
         try {
-        const updated = await file.findOneAndUpdate(
-        { Title },
-        {
-        Author_Mail,
-        Conference_Name,
-        Decision_With_Comments
-        },
-        { new: true} // upsert creates the document if it doesn't exist
-        );
-        return updated;
-        } catch (error) {
-        console.error("Error updating the document:", error);
-        throw error;
-        }
+    const records = await file.find({ Title: Title });
+    return records;
+  } catch (error) {
+    throw new Error("Error fetching records by title");
+  }
     },
 
 }
