@@ -31,7 +31,7 @@ createFile: async (req, res) => {
                       } catch (error) {
                         res
                           .status(400)
-                          .jsn({ message: "Error uploading on data" });
+                          .json({ message: "Error uploading on data" });
                       }
                     }
                 }
@@ -46,15 +46,39 @@ createFile: async (req, res) => {
         }
     },
 
-    getFiles: async(req,res) => {
+    getFiles: async (req, res) => {
+        const file = req.file.buffer;
         try {
-            const response = await fileModel.getFiles();
-            res.status(200).json({ data: response, message: "file fetched successfully" });
+            const workbook = XLSX.read(file, { type: "buffer" });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+          const data = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
+          
+           
+              if (!data || data.length === 0) {
+                return new Error("response not found!");
+          }
+          const responses = [];
+          for (const item of data) { 
+                      try {
+                          const payload = {
+                              Title: item.Title,
+                          }
+                        const response = await fileModel.getFiles(payload);
+                        responses.push(response);
+                      } catch (error) { 
+                         res.status(400).json({message:"No files matched!"})
+                      }
+                  }
+          res.status(200).json({data:responses,message: "files fetched stuccessfully!" });
         } catch (error) {
-            res.status(400).json({message:"Error occured while fetching file"})
+          res.status(500).json({ message: "Internal server Error" }); 
         }
-    },
-
+       
+  },
+    
+    
+    
     updateField: async(req,res) => {
          try {
       // Read Excel buffer

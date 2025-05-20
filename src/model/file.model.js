@@ -12,8 +12,9 @@ const file = mongoose.model("Excel", fileschema);
 
 const fileModel = {
     checkTitleExist: async (payload) => {
-        const { Title,Author_Mail,Conference_Name,Decision_With_Comments} = payload;
-        const exist = await file.findOne(Title);
+        
+        const { Title,Author_Mail,Conference_Name,Decision_With_Commends} = payload;
+        const exist = await file.findOne({Title});
         if (exist) {
             return exist.Title, exist.Conference_Name, exist.Decision_With_Comments;
         }
@@ -24,6 +25,18 @@ const fileModel = {
 
     createFiled: async(payload) => {
         await fileModel.checkTitleExist(payload);
+    },
+
+
+    getFiles: async (payload) => {
+        const { Title } = payload;
+        try {
+            const response = await file.findOne({ Title:Title });
+            return response;
+        } catch (error) {
+            return new Error("erro validating title")
+        }
+        
     },
      
     updateField: async ({ Title, Author_Mail, Conference_Name, Decision_With_Comments }) => {
@@ -43,38 +56,6 @@ const fileModel = {
         throw error;
         }
     },
-
-
-    
-
-    searchEmail: async (Author_Mail) => {
-        try {
-            const response = await file.findOne(Author_Mail);
-            return response;
-        } catch (error) {
-            return new Error("Error occured!");
-        }
-        
-    },
-
-    searchTitle: async (Title) => {
-        try {
-            const response = await file.findOne(Title);
-            return response;
-        } catch (error) {
-            return new Error("Error occured!");
-        }
-      
-    },
-
-    searchConference: async (Conference_Name) => {
-        try {
-            const response = await file.findOne(Conference_Name);
-            return response;
-        } catch (error) {
-            return new Error("Error occured!");
-        }
-    }
 
 }
 

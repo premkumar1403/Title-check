@@ -1,6 +1,6 @@
 const bcrypt= require("bcrypt");
 const userModel=require("../model/user.model")
-const cookieParser = require("cookieparser")
+
 
 const User = {
     Signup: async (req,res) => {
