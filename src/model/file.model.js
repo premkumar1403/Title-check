@@ -3,13 +3,13 @@ const mongoose = require("mongoose");
 
 const fileschema = new mongoose.Schema({
   Title: { type: String },
-    Author: [{
-        Mail: { type: String},
-    },],
-  Conference: [{
+    Author_Mail: {
+        Author_Mail: { type: String},
+    },
+  Conference: {
     Conference_Name: { type: String},
     Decision_With_Commends:{type:String},
-  },]
+  },
 });
 
 const file = mongoose.model("Excel", fileschema);
@@ -18,11 +18,16 @@ const fileModel = {
     checkTitleExist: async (payload) => {
         
         const { Title,Author_Mail,Conference_Name,Decision_With_Commends} = payload;
+        console.log(payload);
+        
         const exist = await file.find({Title});
         if (exist) {
-            return exist.Title, exist.Conference.Conference_Name, exist.Conference.Decision_With_Commends;
+           return exist;
+            // return exist.Title, exist.Conference.Conference_Name, exist.Conference.Decision_With_Commends;
         }
-        return await file.insertMany({ Title: Title, Author: {Mail:Author_Mail}, Conference: { Conference_Name:Conference_Name, Decision_With_Commends: Decision_With_Commends } });
+        return await file.insertMany({ Title: Title,
+             Author_Mail: {Author_Mail:Author_Mail}, 
+             Conference: { Conference_Name:Conference_Name, Decision_With_Commends: Decision_With_Commends } });
         
         
     },
