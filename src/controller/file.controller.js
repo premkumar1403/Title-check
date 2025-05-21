@@ -47,7 +47,7 @@ createFile: async (req, res) => {
         }
     },
 
-    getFile: async (req, res) => {
+ getFile: async (req, res) => {
         const file = req.file.buffer;
         try {
             const workbook = XLSX.read(file, { type: "buffer" });
@@ -71,12 +71,71 @@ createFile: async (req, res) => {
                          res.status(400).json({message:"No files matched!"})
                       }
                   }
-          res.status(200).json({data:responses,message: "files fetched stuccessfully!" });
-        } catch (error) {
-          res.status(500).json({ message: "Internal server Error" }); 
+
+  
+          let filteredData = [...responses];
+
+        // Filtering
+        const queryObj = { ...req.query };
+        const excludeFields = ["page", "sort", "limit", "fields"];
+        excludeFields.forEach((ex) => delete queryObj[ex]);
+
+        filteredData = filteredData.filter(item => {
+            return Object.entries(queryObj).every(([key, value]) =>
+                item[key] && item[key].toString().toLowerCase() === value.toLowerCase()
+            );
+        });
+
+        // Sorting
+        if (req.query.sort) {
+            const sortFields = req.query.sort.split(',').map(field => field.trim());
+            filteredData.sort((a, b) => {
+                for (let field of sortFields) {
+                    let order = 1;
+                    if (field.startsWith('-')) {
+                        order = -1;
+                        field = field.substring(1);
+                    }
+                    if (a[field] < b[field]) return -1 * order;
+                    if (a[field] > b[field]) return 1 * order;
+                }
+                return 0;
+            });
         }
+
+        // Field selection
+        let finalData = filteredData;
+        if (req.query.fields) {
+            const fields = req.query.fields.split(',');
+            finalData = filteredData.map(item => {
+                const newObj = {};
+                fields.forEach(field => {
+                    if (item[field]) newObj[field] = item[field];
+                });
+                return newObj;
+            });
+        }
+
+        // Pagination
+        const pageNum = parseInt(req.query.page) || 1;
+        const limitNum = parseInt(req.query.limit) || 10;
+        const skip = (pageNum - 1) * limitNum;
+        const paginatedData = finalData.slice(skip, skip + limitNum);
+
+        res.status(200).json({
+            totalResults: filteredData.length,
+            page: pageNum,
+            limit: limitNum,
+            data: paginatedData,
+            message: "files fetched successfully!"
+        });
+
+    } catch (error) {
+        console.error("Error processing file:", error);
+        res.status(500).json({ message: "Internal server Error" });
+    }
        
-  },
+  },  
     
     
     
