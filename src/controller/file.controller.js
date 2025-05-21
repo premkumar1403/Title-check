@@ -1,8 +1,6 @@
 const XLSX = require("xlsx")
 const fileModel = require("../model/file.model")
 
-
-
 const fileController = {
   
 createFile: async (req, res) => {
