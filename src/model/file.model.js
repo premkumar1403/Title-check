@@ -3,78 +3,93 @@ const mongoose = require("mongoose");
 
 const fileschema = new mongoose.Schema({
   Title: { type: String },
-    Author_Mail: {
-        Author_Mail: { type: String},
-    },
-  Conference: {
+    Author_Mail: [{Author_Mail:{ type: String }}],
+  Conference:[ {
     Conference_Name: { type: String},
     Decision_With_Commends:{type:String},
-  },
+  },]
 });
 
 const file = mongoose.model("Excel", fileschema);
 
 const fileModel = {
-    checkTitleExist: async (payload) => {
-        const { Title, Author_Mail, Conference_Name, Decision_With_Commends } = payload;
-        // console.log(payload);
-        const exist = await file.find({Title});
-        if (exist) {
-           return exist;
-            // return exist.Title, exist.Conference.Conference_Name, exist.Conference.Decision_With_Commends;
-        }
-        const response =  await file.insertMany([{ Title: Title, Author_Mail: {Author_Mail:Author_Mail}, Conference: { Conference_Name:Conference_Name, Decision_With_Commends: Decision_With_Commends } }]);
-        console.log(response);
-        
-        
-    },
+  checkTitleExist: async (payload) => {
+    const { Title, Author_Mail, Conference_Name, Decision_With_Commends } =
+      payload;
 
-    createFiled: async(payload) => {        
-        await fileModel.checkTitleExist(payload);
-    },
+    const existingFile = await file.findOne({ Title });
 
-
-    getFiles: async () => {
-        try {
-    const result = await file.find({});
-    return result;
-  } catch (error) {
-    throw new Error("Error fetching files");
-  }
-        
-    },
-     
-    updateFile: async (payload) => {
-        const {Title} = payload;
-        
-        try {
-      return await file.findOne({ Title: Title });
-    } catch (error) {
-      throw new Error("Error fetching by title");
-    }
-},
-
-    updateAuthorEmail: async (Title, newEmail) => {
-    try {
-      return await file.updateOne(
-        { Title: Title },
-        { $addToSet: { "Author.email": newEmail } } // Avoid duplicates
+    if (existingFile) {
+      
+      const authorExists = existingFile.Author_Mail.some(
+        (author) => author.Author_Mail === Author_Mail
       );
-    } catch (error) {
-      throw new Error("Error updating author email");
+
+      if (authorExists) {
+        
+        const conferenceIndex = existingFile.Conference.findIndex(
+          (conf) => conf.Conference_Name === Conference_Name
+        );
+
+        if (conferenceIndex !== -1) {
+        
+          existingFile.Conference[conferenceIndex].Decision_With_Commends =
+            Decision_With_Commends;
+        } else {
+        
+          existingFile.Conference.push({
+            Conference_Name,
+            Decision_With_Commends,
+          });
+        }
+      } else {
+        
+        existingFile.Author_Mail.push({ Author_Mail });
+         
+        const conferenceIndex = existingFile.Conference.findIndex(
+          (conf) => conf.Conference_Name === Conference_Name
+        );
+
+        if (conferenceIndex !== -1) {
+          existingFile.Conference[conferenceIndex].Decision_With_Commends =
+            Decision_With_Commends;
+        } else {
+          existingFile.Conference.push({
+            Conference_Name,
+            Decision_With_Commends,
+          });
+        }
+      }
+
+    
+      await existingFile.save();
+    } else {
+      await file.insertMany([{
+        Title,
+        Author_Mail: [{ Author_Mail }],
+        Conference: [
+          {
+            Conference_Name,
+            Decision_With_Commends,
+          },
+        ],
+      }]);
     }
   },
-    showFile: async (payload) => {
-        const { Title } = payload;
-        try {
-            const response = await file.find({ Title:Title });
-            return response;
-        } catch (error) {
-            return new Error("erro validating title")
-        }
-        
-    },
 
-}
+  createField: async (payload) => {
+    await fileModel.checkTitleExist(payload);
+  },
+
+  showFile: async (payload) => {
+    const { Title } = payload;
+    try {
+      const response = await file.find({ Title: Title });
+      return response;
+    } catch (error) {
+      return new Error("erro validating title");
+    }
+  },
+};
 
 module.exports = fileModel;
