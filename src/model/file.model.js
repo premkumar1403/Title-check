@@ -14,6 +14,8 @@ const fileschema = new mongoose.Schema({
 const file = mongoose.model("Excel", fileschema);
 
 const fileModel = {
+
+  //Function checks title is exist or not
   checkTitleExist: async (payload) => {
     const { Title, Author_Mail, Conference_Name, Decision_With_Commends } =
       payload;
@@ -65,7 +67,7 @@ const fileModel = {
         }
       }
 
-      savedFile = await existingFile.save(); //saves a file
+      savedFile = await existingFile.save(); //saves as a file
     } else {
       const [newfile] = await file.create([
         {
@@ -84,19 +86,14 @@ const fileModel = {
     return savedFile;
   },
 
+  //Record cration function
   createField: async (payload) => {
     return await fileModel.checkTitleExist(payload);
   },
 
-  showFile: async (payload) => {
-    const { Title } = payload;
-    try {
-      const response = await file.find({ Title: Title });
-      return response;
-    } catch (error) {
-      return new Error("erro validating title");
-    }
-  },
+  getFile: async () => {
+      return await file.find();
+  }
 };
 
 module.exports = fileModel;
