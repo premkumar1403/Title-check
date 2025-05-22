@@ -18,7 +18,7 @@ const fileModel = {
     const existingFile = await file.findOne({ Title });
 
     if (existingFile) {
-      
+      console.log(existingFile);
       const authorExists = existingFile.Author_Mail.some(
         (author) => author.Author_Mail === Author_Mail
       );
