@@ -10,6 +10,8 @@ const fileController = {
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet, { header: 0 });
+      console.log(data);
+      
       if (!data || data.length === 0) {
         return null;
       } else {
@@ -20,7 +22,7 @@ const fileController = {
               Title: item.Title,
               Author_Mail: item.Author_Mail,
               Conference_Name: item.Conference_Name,
-              Decision_With_Commends: item.Decision_With_Comments,
+              Decision_With_Commends: item.Decision_With_Commends,
             };
             const responses = await fileModel.createField(payload);
             response.push(responses);
