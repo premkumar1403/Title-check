@@ -27,7 +27,7 @@ createFile: async (req, res) => {
                           Decision_With_Commends: item.Decision_With_Commends,
                         };
 
-                        fileModel.createFiled(payload);
+                        fileModel.createField(payload);
                         resolve();
                       } catch (error) {
                         res
