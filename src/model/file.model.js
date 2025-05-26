@@ -14,7 +14,6 @@ const fileschema = new mongoose.Schema({
 const file = mongoose.model("Excel", fileschema);
 
 const fileModel = {
-
   //Function checks title is exist or not
   checkTitleExist: async (payload) => {
     const { Title, Author_Mail, Conference_Name, Decision_With_Commends } =
@@ -67,9 +66,9 @@ const fileModel = {
         }
       }
 
-      savedFile = await existingFile.save(); //saves as a file
+      return (savedFile = await existingFile.save()); //saves as a file
     } else {
-      const [newfile] = await file.create([
+      const [newfile] = await file.insertMany([
         {
           Title,
           Author_Mail: [{ Author_Mail }],
@@ -81,19 +80,41 @@ const fileModel = {
           ],
         },
       ]);
-      savedFile = newfile;
+      return newfile;
     }
     return savedFile;
   },
 
-  //Record cration function
+  //creates a new document
   createField: async (payload) => {
     return await fileModel.checkTitleExist(payload);
   },
 
+  //to get the required file
   getFile: async () => {
-      return await file.find();
-  }
+    return await file.find();
+  },
+
+  searchTitle: async (Title) => {
+    const res = await file.find({ Title: Title });
+  },
+
+  getPaginatedFiles: async (searchTerm, page, limit) => {
+    const skip = (page - 1) * limit;
+
+    const query = {
+      $or: [
+        { Title: { $regex: searchTerm, $options: "i" } },
+        { "Conference.Conference_Name": { $regex: searchTerm, $options: "i" } },
+      ],
+    };
+
+    const totalCount = await file.countDocuments(query);
+
+    const results = await file.find(query).skip(skip).limit(limit);
+
+    return { results, totalCount };
+  },
 };
 
 module.exports = fileModel;
