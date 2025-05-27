@@ -138,8 +138,8 @@ const fileModel = {
     const { Title, Author_Mail, Conference_Name, Decision_With_Commends } =
       payload;
 
-    const normalizedTitle = Title.trim().toLowerCase();
-    const normalizedEmail = Author_Mail.trim().toLowerCase();
+    const normalizedTitle = Title;
+    const normalizedEmail = Author_Mail;
 
     const existingFile = await file.findOne({ Title: normalizedTitle });
 
@@ -157,7 +157,7 @@ const fileModel = {
       );
 
       if (confIndex !== -1) {
-        if (Decision_With_Commends?.trim()) {
+        if (Decision_With_Commends) {
           existingFile.Conference[confIndex].Decision_With_Commends =
             Decision_With_Commends;
         }
@@ -230,6 +230,13 @@ const fileModel = {
     const totalCount = await file.countDocuments(query);
     const results = await file.find(query).skip(skip).limit(limit);
     return { results, totalCount };
+  },
+
+  findByTitleAndAuthor: async (title, authorEmail) => {
+    return await file.findOne({
+      Title: title,
+      Author_Mail: { $elemMatch: { Author_Mail: authorEmail } },
+    });
   },
 };
 
